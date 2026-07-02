@@ -1,7 +1,7 @@
-import {asyncHandler} from "../middleware/asyncHandler.js";
-import {ApiError} from "../utils/apiError.js";
-import {User} from "../models/user.js";
-import {generateToken} from "../utils/generateToken.js";
+import { asyncHandler } from "../utils/async-handler.js";
+import { ApiError } from "../utils/api-error.js";
+import User from "../models/user.js";
+import { generateToken } from "../utils/generate-token.js";
 
 const toClientUser = (user) => {
     return {
@@ -39,15 +39,29 @@ export const login = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Email and password are required");
     }
     
-    const user = await User.findOne({email: email.toLowerCase()});
-    if (!user) {
-        throw new ApiError(401, "Invalid email or password");
-    }
-    
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
+    const user = await User.findOne({email: email.toLowerCase()}).select("+password");
+    if (!user || !(await user.matchPassword(password))) {
         throw new ApiError(401, "Invalid email or password");
     }
     
     res.json({success: true, token: generateToken(user._id), user: toClientUser(user)});
+});
+
+export const getMe = asyncHandler(async (req, res) => {
+    res.json({success: true, user: toClientUser(req.user)});
+});
+
+export const updateProfile = asyncHandler(async (req, res) => {
+    const {name, email, company, password} = req.body;
+    console.log(name, email, company);
+    const user = req.user;
+
+    if (name !== undefined) user.name = name;
+    if (company !== undefined) user.company = company;
+    if (user.avatar !== undefined) user.avatar = user.avatar;
+    if (password !== undefined) user.password = password;
+    
+    await user.save();
+    
+    res.json({success: true, user: toClientUser(user)});
 });

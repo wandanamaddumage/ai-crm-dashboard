@@ -5,6 +5,7 @@ import morgan from "morgan";
 
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/error.middleware.js";
+import authRoutes from "./routes/auth.routes.js";
 
 dotenv.config();
 
@@ -27,6 +28,8 @@ if (process.env.NODE_ENV !== "production") {
 app.get("/api/health", (req, res) => {
     res.json({ success: true, status: "OK", service: "TTP AI CRM Dashboard API" });
 });
+
+app.use("/api/auth", authRoutes);
 
 /*---------------------------------------- Error Handlers -----------------------------------------*/
 app.use(notFound);

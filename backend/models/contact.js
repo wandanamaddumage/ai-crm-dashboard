@@ -41,4 +41,5 @@ const contactSchema = new mongoose.Schema(
 
 contactSchema.index({name: "text", email: "text", company: "text"});
 
-export default Contact = mongoose.model("Contact", contactSchema);
+const Contact = mongoose.model("Contact", contactSchema);
+export default Contact;
